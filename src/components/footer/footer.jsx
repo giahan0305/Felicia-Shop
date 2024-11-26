@@ -1,3 +1,4 @@
+
 function Footer() {
   return (
     <footer className="w-100 bg-light text-dark pt-4" id="footer">
@@ -64,3 +65,4 @@ function Footer() {
 }
 
 export default Footer;
+

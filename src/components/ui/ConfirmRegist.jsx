@@ -1,3 +1,4 @@
+
 import 'react-toastify/dist/ReactToastify.css';
 import Swal from 'sweetalert2';
 
@@ -80,3 +81,4 @@ const ConfirmRegist = () => {
 };
 
 export default ConfirmRegist;
+
