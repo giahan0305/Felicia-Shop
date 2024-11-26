@@ -1,93 +1,88 @@
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import Swal from 'sweetalert2';
-import axios from 'axios';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { getMethod } from '@services/request'; // Adjust the import path as needed
+import { formatMoney } from '@services/Formatmoney';
 
-const API_URL = 'http://localhost:8080/api';
-const apiClient = axios.create({
-  baseURL: API_URL,
-});
+function ProductDetail() {
+    const { productId } = useParams(); // Get the productId from URL
+    const [product, setProduct] = useState(null);
+    const navigate = useNavigate();
 
-export const login = async (username, password, tokenFcm) => {
-  try {
-    const response = await apiClient.post('/login', { username, password, tokenFcm });
-    return response.data;  // Return token and user info
-  } catch (error) {
-    throw new Error(error.response?.data?.message || 'Đăng nhập thất bại');
-  }
-};
+    // Fetch product details when component mounts or productId changes
+    useEffect(() => {
+        const fetchProductDetail = async () => {
+            try {
+                // Get the product ID from the current URL
+                const uls = new URL(document.URL);
+                const id = uls.searchParams.get("id");
+                // Fetch product details using the ID
+                const response = await getMethod(`http://localhost:8080/api/product/public/find-by-id/${id || product.id}`);
+                setProduct(response.content); // Adjust based on your API's response structure
+                console.log(response.content); // Debugging: Check the response structure
+            } catch (error) {
+                console.error('Error fetching product details:', error);
+            }
+        };
+        fetchProductDetail();
+    }, [product.id]);
 
-export const handleLogin = async (event) => {
-  event.preventDefault();
-  const username = event.target.elements.username.value;
-  const password = event.target.elements.password.value;
-  const tokenFcm = "someToken"; // Replace with actual FCM token if necessary
+    // Handle adding product to cart
+    const addToCart = () => {
+        const token = localStorage.getItem('token'); // Check if user is logged in
 
-  try {
-    // Call the login API function
-    const result = await login(username, password, tokenFcm);
-
-    // Handle response based on error code
-    if (result.errorCode === 300) {
-      Swal.fire({
-        title: "Thông báo",
-        text: "Tài khoản chưa được kích hoạt, đi tới kích hoạt tài khoản!",
-        preConfirm: () => {
-          window.location.href = 'confirm?email=' + username;
+        if (!token) {
+            alert('Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng!');
+            navigate('/login'); // Redirect to login page
+            return;
         }
-      });
-    } else {
-      toast.success('Đăng nhập thành công!');
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Save token and user info in local storage
-      localStorage.setItem("token", result.token);
-      localStorage.setItem("user", JSON.stringify(result.user));
 
-      // Check user role and navigate accordingly
-      const userRole = result.user.authorities.name;
-      if (userRole === "ROLE_ADMIN") {
-        window.location.href = 'admin/dashboard';
-      } else if (userRole === "ROLE_USER") {
-        window.location.href = '/home';
-      }
+        if (product) {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            cart.push(product); // Add the product to the cart
+            localStorage.setItem('cart', JSON.stringify(cart));
+            alert(`${product.name} đã được thêm vào giỏ hàng!`);
+        }
+    };
+
+    if (!product) {
+        return <div>Loading...</div>; // Show loading state while the product is being fetched
     }
-  } catch (error) {
-    toast.error(error.message || 'Đăng nhập thất bại');
-  }
-};
 
-export const handleChangePass = async (event) => {
-  const token = localStorage.getItem('token');
-  event.preventDefault();
+    return (
+        <div className="container my-5">
+            <div className="row">
+                {/* Product Image */}
+                <div className="col-md-6">
+                    <img src={product.imageBanner} className="img-fluid" alt={product.name} />
+                </div>
 
-  if (event.target.elements.newpass.value !== event.target.elements.renewpass.value) {
-    toast.error("Mật khẩu mới không trùng khớp");
-    return;
-  }
+                {/* Product Info */}
+                <div className="col-md-6">
+                    <h2>{product.name}</h2>
+                    <p className="text-muted">{product.description}</p>
+                    <h3>
+                        {formatMoney(product.price)} <span style={{ textDecoration: 'underline' }}>đ</span>
+                    </h3>
 
-  const payload = {
-    oldPass: event.target.elements.currentpass.value,
-    newPass: event.target.elements.newpass.value
-  };
+                    {/* Product Details */}
+                    <div className="mt-4">
+                        <button className="btn btn-primary" onClick={addToCart}>
+                            Thêm vào giỏ hàng
+                        </button>
+                    </div>
+                </div>
+            </div>
 
-  try {
-    const res = await apiClient.post('/user/change-password', payload, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
+            {/* Product Ratings (Optional) */}
+            <div className="mt-4">
+                <h4>Đánh giá sản phẩm</h4>
+                <div className="d-flex">
+                    {/* You can add a rating system here */}
+                    <span className="badge bg-success">4.5/5</span>
+                </div>
+            </div>
+        </div>
+    );
+}
 
-    if (res.status === 417) {
-      const result = res.data;
-      toast.error(result.defaultMessage);
-    } else if (res.status < 300) {
-      toast.success("Đổi mật khẩu thành công!");
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      window.location.reload();
-    }
-  } catch (error) {
-    toast.error(error.message || 'Đổi mật khẩu thất bại');
-  }
-};
+export default ProductDetail;

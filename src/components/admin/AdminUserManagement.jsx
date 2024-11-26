@@ -149,7 +149,7 @@ const AdminUser = () => {
                   <td>{item.phone}</td>
                   <td>{item.createdDate}</td>
                   <td>{item.authorities.name}</td>
-                  <td className="sticky-col">
+                  <td className="sticky-col-usermanage ">
                     <button
                       onClick={() => lockOrUnlockUser(item.id, item.actived ? 1 : 0)}
                       className={`btn ${item.actived ? 'btn-primary' : 'btn-danger'}`}
