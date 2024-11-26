@@ -24,6 +24,7 @@ async function uploadSingleFile(filePath) {
 }
 
 
+
 async function uploadMultipleFile(listFile) {
     const formData = new FormData()
     for (var i = 0; i < listFile.length; i++) {
