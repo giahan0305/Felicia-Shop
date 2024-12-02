@@ -14,7 +14,7 @@ yarn dev
 pnpm dev
 # or
 bun dev
-`exit`
+```
 
 Open http://localhost:3000 in your browser to see your application.
 File Structure
