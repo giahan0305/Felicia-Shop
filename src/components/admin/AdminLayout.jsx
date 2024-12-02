@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 
 function AdminLayout({children}) {
+  const apiUrl = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -41,7 +42,7 @@ function AdminLayout({children}) {
       return;
     }
 
-    const url = 'http://localhost:8080/api/admin/check-role-admin';
+    const url = `${apiUrl}/api/admin/check-role-admin`;
     try {
       const response = await fetch(url, {
         headers: new Headers({

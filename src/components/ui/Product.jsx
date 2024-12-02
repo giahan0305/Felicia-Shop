@@ -1,55 +1,102 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getMethod } from '@services/request'; // Điều chỉnh đường dẫn nếu cần
+import { getMethod, getMethodByToken, getMethodPostByToken} from '@services/request'; // Điều chỉnh đường dẫn nếu cần
 import { formatMoney } from '@services/Formatmoney';
-
+import { toast } from 'react-toastify';
 function ProductDetail() {
+    const apiUrl = import.meta.env.VITE_API_URL;
     const [product, setProduct] = useState(null);
-    const [relatedProducts, setRelatedProducts] = useState([]); // Sản phẩm liên quan
-    const [quantity, setQuantity] = useState(1); // Số lượng sản phẩm
+    const [relatedProducts, setRelatedProducts] = useState([]);
+    const [quantity, setQuantity] = useState(1);
     const navigate = useNavigate();
-
-    const token = localStorage.getItem("token");
-
+   
     useEffect(() => {
         const fetchProductDetail = async () => {
             try {
                 const uls = new URL(window.location.href);
-                const productId = uls.searchParams.get("productId"); // Lấy ID từ URL
-
-                // Lấy chi tiết sản phẩm
-                const result = await getMethod(`http://localhost:8080/api/product/public/findById?id=${productId}`);
+                const productId = uls.searchParams.get('productId');
+                
+                const result = await getMethod(`${apiUrl}/api/product/public/findById?id=${productId}`);
+                console.log('Product details:', result); 
                 setProduct(result);
-                console.log(result);
-                // Lấy sản phẩm liên quan
-                const relatedResult = await getMethod(`http://localhost:8080/api/product/public/san-pham-lien-quan?id=${productId}`);
+        
+                const relatedResult = await getMethod(`${apiUrl}/api/product/public/san-pham-lien-quan?id=${productId}`);
+                console.log('Related products:', relatedResult); 
                 setRelatedProducts(relatedResult || []);
             } catch (error) {
                 console.error('Lỗi khi lấy chi tiết sản phẩm:', error);
             }
         };
-
+        
         fetchProductDetail();
     }, []);
 
-    const addToCart = (product) => {
-        const isLoggedIn = !!token;
-
-        if (!isLoggedIn) {
-            alert('Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng!');
-            navigate('/login');
-            return;
+    async function initCart() {
+        try {
+          const response = await getMethodByToken(`${apiUrl}/api/cart/user/my-cart`);
+          await response.json();
+        } catch (error) {
+          console.error('Failed to fetch cart:', error);
+          toast.error('Có lỗi xảy ra khi tải giỏ hàng.');
         }
-
-        const cart = JSON.parse(localStorage.getItem('cart')) || [];
-        const productWithQuantity = { ...product, quantity };
-        cart.push(productWithQuantity);
-        localStorage.setItem('cart', JSON.stringify(cart));
-        alert(`${product.name} đã được thêm vào giỏ hàng với số lượng ${quantity}!`);
+      }
+    
+      async function updateCartItem(id, quantity) {
+        try {
+          const url = `${apiUrl}/api/cart/user/up-and-down-cart?id=${id}&quantity=${quantity}`;
+          await getMethodByToken(url);
+          await initCart();
+        } catch (error) {
+          console.error('Failed to update cart:', error);
+          toast.error('Có lỗi xảy ra khi cập nhật giỏ hàng.');
+        }
+      }
+      
+    const addToCart = async (product,newQuantity) => {
+        try {
+            const response = await getMethodByToken(`${apiUrl}/api/cart/user/my-cart`);
+            const cartItems = await response.json();
+            const existingItem = cartItems.find(item => item.product.id === product.id);
+            if (existingItem) {
+                updateCartItem(existingItem.id,newQuantity)
+                alert("Số lượng sản phẩm đã được cập nhật trong giỏ hàng");
+            } else {
+                const url = `${apiUrl}/api/cart/user/create?idproduct=${product.id}`;
+                const result = await getMethodPostByToken(url);
+                if (newQuantity>1)
+                {
+                    newQuantity=newQuantity-1;
+                    addToCart(product,newQuantity)
+                }
+                if (result.status < 300) {
+                    alert("Thêm giỏ hàng thành công");
+                } else {
+                    alert("Hãy đăng nhập");
+                }
+            }
+            const url2 = `${apiUrl}/api/cart/user/count-cart`;
+            await getMethodByToken(url2);
+        } catch (error) {
+            console.error("Error adding product to cart:", error);
+            toast.error('Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng.');
+        }
     };
-
+    
+    
     const handleQuantityChange = (e) => {
-        setQuantity(Number(e.target.value));
+        const newQuantity = Number(e.target.value);
+    
+        if (newQuantity <= 1) {
+            alert("Số lượng phải lớn hơn 1!");
+        } else {
+            setQuantity(newQuantity);
+        }
+    };
+    
+
+    const handleNavigate = (productId, productName) => {
+        navigate(`/product?productId=${productId}&productName=${productName}`);
+        window.location.reload();
     };
 
     if (!product) {
@@ -58,114 +105,97 @@ function ProductDetail() {
 
     return (
         <div className="container my-5">
-    <nav aria-label="breadcrumb">
-        <ol className="breadcrumb" style={{ marginTop: '80px' }}>
-            <li className="breadcrumb-item" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-                Trang chủ
-            </li>
-            <li className="breadcrumb-item active" aria-current="page">
-                {product?.name || 'Sản phẩm'}
-            </li>
-        </ol>
-    </nav>
+            <nav aria-label="breadcrumb">
+                <ol className="breadcrumb" style={{ marginTop: '80px' }}>
+                    <li className="breadcrumb-item" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+                        Trang chủ
+                    </li>
+                    <li className="breadcrumb-item" onClick={() => navigate(`/category?categoryId=${product.category.id}&categoryName=${encodeURIComponent(product.category.name)}`)} style={{ cursor: 'pointer' }}>
+                        {product.category.name || 'Danh mục'}
+                    </li>
+                    <li className="breadcrumb-item active" aria-current="page">
+                        {product?.name || 'Sản phẩm'}
+                    </li>
+                </ol>
+            </nav>
 
-    {/* Product Detail Section */}
-    <div className="row product-container">
-        {/* Ảnh sản phẩm */}
-        <div className="product-image-container col-md-6" style={{ marginTop: '80px' }}>
-            <img 
-                src={product?.imageBanner || ''} 
-                className="img-fluid product-image" 
-                alt={product?.name || 'Sản phẩm'}
-                style={{ maxWidth: '100%', height: 'auto' }}
-            />
-        </div>
+            <div className="row product-container">
+                <div className="col-md-4" style={{ height: '400px',marginTop: '5px', width: '300px' }}>
+                    <img
+                        src={product?.imageBanner || ''}
+                        className="img-fluid"
+                        alt={product?.name || 'Sản phẩm'}
+                        style={{ maxWidth: '100%', height: '90%', objectFit: 'cover' }}
+                    />
+                </div>
 
-        {/* Thông tin sản phẩm */}
-        <div className="col-md-6 product-info" style={{ marginTop: '80px' }}>
-            <h2 className="product-name">{product?.name || 'Tên sản phẩm'}</h2>
-            <p className="product-description">{product?.description || 'Mô tả sản phẩm'}</p>
-            <h3 className="product-price">
-                {formatMoney(product?.price || 0)} <span style={{ textDecoration: 'underline' }}></span>
-            </h3>
+                <div className="col-md-6" style={{ marginRight: '150px',marginTop:' -60px'}}>
+                    <h1>{product?.name || 'Tên sản phẩm'}</h1>
+                    <p>{product?.description || 'Mô tả sản phẩm'}</p>
+                    <h3>{formatMoney(product?.price || 0)}</h3>
 
-            {/* Chọn số lượng */}
-            <div className="mt-3">
-                <label htmlFor="quantity">Số lượng:</label>
-                <input 
-                    type="number" 
-                    id="quantity" 
-                    value={quantity}
-                    onChange={handleQuantityChange}
-                    min="1" 
-                    className="form-control w-auto" 
-                    style={{ width: '100px' }}
-                />
-            </div>
+                    <p>Lượt mua: {product?.purchaseCount || 0}</p>
 
-            {/* Thêm vào giỏ hàng */}
-            <div className="mt-4">
-                <button className="btn btn-primary add-to-cart-btn" onClick={() => addToCart(product)}>
-                    Thêm vào giỏ hàng
-                </button>
-            </div>
-        </div>
-    </div>
+                    <div className="mt-3">
+                        <label htmlFor="quantity">Số lượng:</label>
+                        <input
+                            type="number"
+                            id="quantity-box"
+                            value={quantity}
+                            onChange={handleQuantityChange}
+                            min="1"
+                            className="form-control"
+                            style={{ width: '150px' }}
+                        />
+                    </div>
 
-    {/* Sản phẩm liên quan */}
-    <h2 className="mt-5 mb-4">Sản phẩm liên quan</h2>
-    <div className="row">
-        {relatedProducts.length === 0 ? ( // Kiểm tra nếu không có sản phẩm liên quan
-            <div className="col-12">
-                <p>Không có sản phẩm liên quan</p> {/* Hiển thị thông báo khi không có sản phẩm liên quan */}
-            </div>
-        ) : (
-            relatedProducts.map(product => (
-                <div className="col-md-3 mb-4" key={product.id}>
-                    <div
-                        className="card h-100 d-flex flex-column align-items-center text-center"
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => navigate(`/Product?productId=${product.id}&productName=${product.name}`)}
-                    >
-                        <div className="d-flex bg-light justify-content-center align-items-center w-100" style={{ height: '150px' }}>
-                            <img 
-                                src={product.imageBanner} 
-                                className="card-img-top h-75 w-75" 
-                                alt={product.name}
-                                style={{ objectFit: 'contain' }}
-                            />
-                        </div>
-                        <div className="card-body d-flex flex-column align-items-center">
-                            <h5 className="card-title">{product.name}</h5>
-                            <p className="card-text">
-                                <span>
-                                    {formatMoney(product.price)} <span style={{ textDecoration: 'underline' }}></span>
-                                </span>
-                            </p>
-                            <button
-                                className="btn btn-primary mt-auto"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    addToCart(product);
-                                }}
-                            >
-                                Thêm vào giỏ hàng
-                            </button>
-                        </div>
+                    <div className="mt-4">
+                        <button className="btn btn-success" onClick={() => addToCart(product,quantity)}>
+                            Thêm vào giỏ hàng
+                        </button>
                     </div>
                 </div>
-            ))
-        )}
-    </div>
+            </div>
 
-    {/* "Show More" Button */}
-    {relatedProducts.length > 4 && (
-        <div className="text-center mt-4">
-            <button className="btn btn-light">Xem thêm</button>
+            <h2 className="mt-5 mb-4">Sản phẩm liên quan</h2>
+            <div className="row">
+                {relatedProducts.length === 0 ? (
+                    <div className="col-12">
+                        <p>Không có sản phẩm liên quan</p>
+                    </div>
+                ) : (
+                    relatedProducts.map((relatedProduct) => (
+                        <div className="col-md-3 mb-4" key={relatedProduct.id}>
+                            <div
+                                className="card h-100 text-center"
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => handleNavigate(relatedProduct.id, relatedProduct.name)}
+                            >
+                                <img
+                                    src={relatedProduct.imageBanner}
+                                    className="mt-3 card-img-top"
+                                    alt={relatedProduct.name}
+                                    style={{ height: '150px', objectFit: 'contain' }}
+                                />
+                                <div className="card-body">
+                                    <h5>{relatedProduct.name}</h5>
+                                    <div className="card-text">   <p>{formatMoney(relatedProduct.price)}</p> <span style={{ textDecoration: 'underline' }}></span></div>
+                                    <button
+                                        className="btn btn-success"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            addToCart(relatedProduct,1);
+                                        }}
+                                    >
+                                        Thêm vào giỏ hàng
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
         </div>
-    )}
-</div>
-
     );
 }
 

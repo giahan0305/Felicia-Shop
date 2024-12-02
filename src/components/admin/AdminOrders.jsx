@@ -6,6 +6,7 @@ import $ from 'jquery';
 import { formatMoney } from '@services/Formatmoney';
 
 const AdminInvoice = () => {
+  const apiUrl = import.meta.env.VITE_API_URL;
   const [items, setItems] = useState([]);
   const [statusInvoice, setStatusInvoice] = useState([]);
   const [itemDetail, setItemDetail] = useState([]);
@@ -14,11 +15,11 @@ const AdminInvoice = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await getMethodByToken('http://localhost:8080/api/invoice/admin/find-all');
+        const response = await getMethodByToken(`${apiUrl}/api/invoice/admin/find-all`);
         const invoices = await response.json();
         setItems(invoices);
 
-        const statusResponse = await getMethodByToken('http://localhost:8080/api/invoice/admin/all-status');
+        const statusResponse = await getMethodByToken(`${apiUrl}/api/invoice/admin/all-status`);
         const statuses = await statusResponse.json();
         setStatusInvoice(statuses);
       } catch (error) {
@@ -37,7 +38,7 @@ const AdminInvoice = () => {
   const filterInvoice = async () => {
     $('#example').DataTable().destroy();
 
-    let url = 'http://localhost:8080/api/invoice/admin/find-all?oke=1';
+    let url = `${apiUrl}/api/invoice/admin/find-all?oke=1`;
     const start = document.getElementById('start').value;
     const end = document.getElementById('end').value;
     const type = document.getElementById('type').value;
@@ -58,7 +59,7 @@ const AdminInvoice = () => {
 
   const getInvoiceDetail = async (item) => {
     try {
-      const response = await getMethodByToken(`http://localhost:8080/api/invoice-detail/admin/find-by-invoice?idInvoice=${item.id}`);
+      const response = await getMethodByToken(`${apiUrl}/api/invoice-detail/admin/find-by-invoice?idInvoice=${item.id}`);
       const details = await response.json();
       setItemDetail(details);
       document.getElementById('trangthaiupdate').value = item.statusInvoice;
@@ -71,11 +72,11 @@ const AdminInvoice = () => {
     const newStatus = document.getElementById('trangthaiupdate').value;
     try {
       const response = await getMethodPostByToken(
-        `http://localhost:8080/api/invoice/admin/update-status?idInvoice=${invoice.id}&status=${newStatus}`
+        `${apiUrl}/api/invoice/admin/update-status?idInvoice=${invoice.id}&status=${newStatus}`
       );
       if (response.status < 300) {
         toast.success('Cập nhật trạng thái đơn hàng thành công!');
-        const updatedInvoicesResponse = await getMethodByToken('http://localhost:8080/api/invoice/admin/find-all');
+        const updatedInvoicesResponse = await getMethodByToken(`${apiUrl}/api/invoice/admin/find-all`);
         const updatedInvoices = await updatedInvoicesResponse.json();
         setItems(updatedInvoices);
       } else {
@@ -123,10 +124,9 @@ const AdminInvoice = () => {
             ))}
           </select>
         </div>
-        <div className="col-md-2">
-          <br />
-          <button onClick={filterInvoice} className="btn btn-danger form-control">
-            <i className="bi bi-filter"></i> Lọc
+        <div className="col-md-2 mt-3" >
+          <button onClick={filterInvoice} className="btn btn-success text-center form-control">
+            <i className="bi bi-filter pt-3"></i> Lọc
           </button>
         </div>
       </div>
@@ -245,7 +245,7 @@ const AdminInvoice = () => {
                 ))}
               </select>
               <br />
-              <button onClick={updateStatus} className="btn btn-primary form-control action-btn">
+              <button onClick={updateStatus} className="btn btn-success form-control action-btn">
                 Cập nhật
               </button>
             </div>

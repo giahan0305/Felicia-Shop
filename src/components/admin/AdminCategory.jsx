@@ -6,6 +6,7 @@ import { getMethodByToken, uploadSingleFile } from '@services/request';
 const token = localStorage.getItem('token');
 
 const AdminCategory = () => {
+  const apiUrl = import.meta.env.VITE_API_URL;
   const [items, setItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
   const [cate, setCate] = useState(null);
@@ -13,7 +14,7 @@ const AdminCategory = () => {
 
   useEffect(() => {
     const fetchCategories = async () => {
-      const response = await getMethodByToken('http://localhost:8080/api/category/public/findAll');
+      const response = await getMethodByToken(`${apiUrl}/api/category/public/findAll`);
       const list = await response.json();
       setItems(list);
       setFilteredItems(list);
@@ -33,15 +34,6 @@ const AdminCategory = () => {
     const id = event.target.elements.idcate.value;
     const name = event.target.elements.catename.value;
   
-    const isDuplicate = items.some(
-      (item) => item.name.toLowerCase() === name.toLowerCase() && item.id !== id
-    );
-  
-    if (isDuplicate) {
-      toast.error('Tên danh mục đã tồn tại! Vui lòng chọn tên khác.');
-      return;
-    }
-  
     let image = cate?.image; // Mặc định giữ hình ảnh cũ nếu không thay đổi
   
     const fileInput = document.getElementById('fileimage');
@@ -57,8 +49,8 @@ const AdminCategory = () => {
     };
   
     const url = id
-      ? `http://localhost:8080/api/category/admin/update` // Update nếu có ID
-      : `http://localhost:8080/api/category/admin/create`; // Tạo mới nếu không có ID
+      ? `${apiUrl}/api/category/admin/update`
+      : `${apiUrl}/api/category/admin/create`; 
   
       const res = await fetch(url, {
         method: 'POST',
@@ -68,10 +60,12 @@ const AdminCategory = () => {
         },
         body: JSON.stringify(payload),
       });
+
   
     if (res.status < 300) {
       const result = await res.json();
       toast.success(id ? 'Cập nhật danh mục thành công!' : 'Thêm danh mục thành công!');
+      window.location.reload();
       if (id) {
         setItems((prevItems) => prevItems.map((item) => (item.id === id ? result : item)));
       } else {
@@ -92,7 +86,7 @@ const AdminCategory = () => {
     const confirmDelete = window.confirm('Bạn chắc chắn muốn xóa danh mục này?');
     if (!confirmDelete) return;
 
-    const url = `http://localhost:8080/api/category/admin/delete?id=${id}`;
+    const url = `${apiUrl}/api/category/admin/delete?id=${id}`;
     const response = await fetch(url, {
       method: 'DELETE',
       headers: {
@@ -111,7 +105,7 @@ const AdminCategory = () => {
   };
 
   const loadCategory = async (id) => {
-    const response = await getMethodByToken(`http://localhost:8080/api/category/admin/findById?id=${id}`);
+    const response = await getMethodByToken(`${apiUrl}/api/category/admin/findById?id=${id}`);
     const result = await response.json();
     setCate(result);
   };
@@ -122,31 +116,31 @@ const AdminCategory = () => {
 
   return (
     <>
-      <div className="mt-5 ms-3 row">
+      <div className="mt-3 ms-3 row">
         <div className="col-md-6">
           <button
             onClick={clearInput}
             data-bs-toggle="modal"
             data-bs-target="#addCategory"
-            className="btn btn-primary"
+            className="btn btn-success"
           >
             <i className="bi bi-plus"></i> Thêm danh mục
           </button>
         </div>
-        <div className="col-md-6 text-end">
-          <div className="input-group">
-            <span className="input-group-text">
-              <i className="bi bi-search"></i>
-            </span>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Tìm kiếm danh mục..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </div>
+        <div className="col-md-6 d-flex justify-content-end">
+  <div className="input-group">
+    <span className="input-group-text mb-2">
+      <i className="bi bi-search"></i>
+    </span>
+    <input
+      type="text"
+      className="form-control"
+      placeholder="Tìm kiếm danh mục..."
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+    />
+  </div>
+</div>
       </div>
 
       <div className="tablediv">

@@ -50,8 +50,8 @@ const Regist = () => {
         phone: formData.phone,
         password: formData.password
       };
-
-      const res = await fetch('http://localhost:8080/api/regis', {
+      const apiUrl = import.meta.env.VITE_API_URL;
+      const res = await fetch(`${apiUrl}/api/regis`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

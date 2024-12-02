@@ -5,8 +5,9 @@ import Swal from 'sweetalert2';
 import { toast } from 'react-toastify';
 
 const Login = () => {
+  const apiUrl = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
-  const { updateUserRole } = useContext(AuthContext); // Access the context
+  const { updateUserRole } = useContext(AuthContext);
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({ email: '', password: '' });
 
@@ -32,14 +33,14 @@ const Login = () => {
 
     try {
       const payload = { username: email, password };
-      const res = await fetch('http://localhost:8080/api/login', {
+      const res = await fetch(`${apiUrl}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
       const result = await res.json();
-
+      console.log(result)
       if (res.status === 417) {
         if (result.errorCode === 300) {
           Swal.fire({

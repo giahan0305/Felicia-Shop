@@ -6,8 +6,8 @@ import { formatMoney } from '@services/Formatmoney';
 import { useNavigate } from 'react-router-dom'; // Importing useNavigate for navigation
 
 const token = localStorage.getItem("token");
-
 const AdminProduct = () => {
+  const apiUrl = import.meta.env.VITE_API_URL;
   const [searchTerm, setSearchTerm] = useState('');
   const [items, setItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
@@ -16,7 +16,7 @@ const AdminProduct = () => {
 
   useEffect(() => {
     const getProduct = async () => {
-      const response = await getMethodByToken('http://localhost:8080/api/product/public/findAll-list');
+      const response = await getMethodByToken(`${apiUrl}/api/product/public/findAll-list`);
       const list = await response.json();
       setItems(list);
       setFilteredItems(list);  // Initially show all items
@@ -38,7 +38,7 @@ const AdminProduct = () => {
     if (con === false) {
       return;
     }
-    const url = `http://localhost:8080/api/product/admin/delete?id=${id}`;
+    const url = `${apiUrl}/api/product/admin/delete?id=${id}`;
     const response = await fetch(url, {
       method: 'DELETE',
       headers: new Headers({
@@ -48,7 +48,7 @@ const AdminProduct = () => {
 
     if (response.status < 300) {
       toast.success("xóa thành công!");
-      const res = await getMethodByToken('http://localhost:8080/api/product/public/findAll-list');
+      const res = await getMethodByToken(`${apiUrl}/api/product/public/findAll-list`);
       const list = await res.json();
       window.location.reload()
       setItems(list);
@@ -60,19 +60,19 @@ const AdminProduct = () => {
 
   return (
     <>
-      <div className="mt-5 ms-3 row">
+      <div className="mt-3 ms-3 row">
         <div className="col-md-6">
           <button
             onClick={() => navigate('/admin/addproduct')} // Navigate to the addproduct page
-            className="btn btn-primary w-50 d-flex align-items-center justify-content-center"
+            className="btn btn-success w-50 d-flex align-items-center justify-content-center"
           >
             <i className="bi bi-plus me-2"></i> Thêm sản phẩm
           </button>
         </div>
         <div className="col-md-6 text-md-end">
           <div className="input-group">
-            <span className="input-group-text bg-light border-end-0">
-              <i className="bi bi-search"></i>
+            <span className="input-group-text bg-light border-end-0 mb-2">
+              <i className="bi bi-search "></i>
             </span>
             <input
               type="text"
@@ -81,6 +81,7 @@ const AdminProduct = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
+            
           </div>
         </div>
       </div>
@@ -91,7 +92,7 @@ const AdminProduct = () => {
         </div>
 
         <div className="divcontenttable mt-3">
-          <table id="example" className="table table-striped table-bordered">
+          <table id="example" className="table table-bordered">
             <thead>
               <tr>
                 <th>ID</th>

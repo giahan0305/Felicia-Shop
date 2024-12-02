@@ -5,6 +5,7 @@ import Chart from 'chart.js/auto';
 
 const token = localStorage.getItem('token');
 const HomeAdmin = () => {
+  const apiUrl = import.meta.env.VITE_API_URL;
   const [doanhthu, setDoanhThu] = useState(0);
   const [quantri, setQt] = useState(null);
   const [doanhthuHomNay, setDoanhThuHomNay] = useState(0);
@@ -12,21 +13,21 @@ const HomeAdmin = () => {
   const [items, setItems] = useState([]);
   useEffect(() => {
     const getThongKe = async () => {
-      const responseMonth = await getMethodByToken('http://localhost:8080/api/statistic/admin/revenue-this-month');
+      const responseMonth = await getMethodByToken(`${apiUrl}/api/statistic/admin/revenue-this-month`);
       setDoanhThu(await responseMonth.text());
   
-      const responseToday = await getMethodByToken('http://localhost:8080/api/statistic/admin/revenue-today');
+      const responseToday = await getMethodByToken(`${apiUrl}/api/statistic/admin/revenue-today`);
       setDoanhThuHomNay(await responseToday.text());
   
-      const responseAdmins = await getMethodByToken('http://localhost:8080/api/statistic/admin/number-admin');
+      const responseAdmins = await getMethodByToken(`${apiUrl}/api/statistic/admin/number-admin`);
       setQt(await responseAdmins.text());
   
-      const responseInvoices = await getMethodByToken('http://localhost:8080/api/statistic/admin/number-invoice-today-finish');
+      const responseInvoices = await getMethodByToken(`${apiUrl}/api/statistic/admin/number-invoice-today-finish`);
       setDonHoanThanhHomNay(await responseInvoices.text());
     };
   
     const getProductBanChay = async () => {
-      const response = await getMethodByToken('http://localhost:8080/api/product/public/san-pham-ban-chay');
+      const response = await getMethodByToken(`${apiUrl}/api/product/public/san-pham-ban-chay`);
       setItems(await response.json());
     };
   
@@ -47,7 +48,7 @@ const HomeAdmin = () => {
     const revenueYear = async (year) => {
       if (year < 2000) year = new Date().getFullYear();
   
-      const url = `http://localhost:8080/api/statistic/admin/revenue-year?year=${year}`;
+      const url = `${apiUrl}/api/statistic/admin/revenue-year?year=${year}`;
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -97,7 +98,7 @@ const HomeAdmin = () => {
   async function revenueYear(year) {
     if (year < 2000) year = new Date().getFullYear();
 
-    const url = `http://localhost:8080/api/statistic/admin/revenue-year?year=${year}`;
+    const url = `${apiUrl}/api/statistic/admin/revenue-year?year=${year}`;
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -225,7 +226,8 @@ const HomeAdmin = () => {
                 <tr key={item.id}>
                   <td>{item.id}</td>
                   <td>
-                    <img src={item.imageBanner} className="imgadmin" alt="banner" />
+                    <img src={item.imageBanner} className="imgadmin" alt="banner" 
+                    style={{ width: '50px', height: '50px', objectFit: 'cover' }}/>
                   </td>
                   <td>{item.name}</td>
                   <td>{formatMoney(item.price)}</td>

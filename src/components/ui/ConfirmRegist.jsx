@@ -2,11 +2,12 @@ import 'react-toastify/dist/ReactToastify.css';
 import Swal from 'sweetalert2';
 
 async function handleConfirm(event) {
+    const apiUrl = import.meta.env.VITE_API_URL;
     event.preventDefault();
     var uls = new URL(document.URL);
     var email = uls.searchParams.get("email");
     var key = event.target.elements.maxacthuc.value;
-    var url = 'http://localhost:8080/api/active-account?email=' + email + '&key=' + key;
+    var url = `${apiUrl}/api/active-account?email=${email}&key=${key}`;
     console.log(email)
     console.log(key)
     try {
@@ -44,7 +45,7 @@ const ConfirmRegist = () => {
             <div className="col-md-6 d-flex align-items-center justify-content-center bg-white p-5">
                     <div className="text-center">
                         <img
-                            src="./assets/logo.jpg"
+                            src="../public/assets/logo.png"
                             alt="Logo Felicia"
                             style={{ maxWidth: '500px', marginBottom: '20px' }}
                         />

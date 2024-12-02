@@ -10,6 +10,7 @@ var description = '';
 const listFile = [];
 
 async function saveProduct(event) {
+    const apiUrl = import.meta.env.VITE_API_URL;
     event.preventDefault();
     document.getElementById("loading").style.display = 'block';
     var uls = new URL(document.URL);
@@ -45,7 +46,7 @@ async function saveProduct(event) {
 
     console.log(prod);
 
-    const response = await fetch('http://localhost:8080/api/product/admin/create-update', {
+    const response = await fetch(`${apiUrl}/api/product/admin/create-update`, {
         method: 'POST',
         headers: new Headers({
             'Authorization': 'Bearer ' + token,
@@ -73,13 +74,13 @@ async function saveProduct(event) {
 const AdminAddProduct = () => {
     const [product, setProduct] = useState(null);
     const [itemDanhmuc, setItemDanhMuc] = useState([]);
-
+    const apiUrl = import.meta.env.VITE_API_URL;
     useEffect(() => {
         const getBlog = async () => {
             var uls = new URL(document.URL);
             var id = uls.searchParams.get("id");
             if (id != null) {
-                var response = await getMethodByToken('http://localhost:8080/api/product/public/findById?id=' + id);
+                var response = await getMethodByToken(`${apiUrl}/api/product/public/findById?id=${id}`);
                 var result = await response.json();
                 setProduct(result);
                 linkbanner = result.imageBanner;
@@ -89,7 +90,7 @@ const AdminAddProduct = () => {
         getBlog();
 
         const getDanhMuc = async () => {
-            var response = await getMethodByToken("http://localhost:8080/api/category/public/findAll");
+            var response = await getMethodByToken(`${apiUrl}/api/category/public/findAll`);
             var list = await response.json();
             setItemDanhMuc(list);
         };
@@ -109,9 +110,9 @@ const AdminAddProduct = () => {
             </div>
         </div>
         <div className="col-sm-12">
-            <div className="form-add" style={{ marginLeft: '120px' }}> {/* Moved form 5px to the right */}
+            <div className="form-add" style={{ marginLeft: '120px' }}> 
                 <form className="row" onSubmit={saveProduct} method="post">
-                    <div className="col-md-4 col-sm-4 col-12" style={{ marginBottom: '5px' }}> {/* Adjust column size */}
+                    <div className="col-md-4 col-sm-4 col-12" style={{ marginBottom: '5px' }}> 
                         <label className="mt-3 lb-form">Tên sản phẩm</label>
                         <input
                             name="tensp"
@@ -157,7 +158,7 @@ const AdminAddProduct = () => {
                             src={product == null ? '' : product.image}
                             id="imgpreproduct"
                             className="imgadmin"
-                            style={{ width: '100%', marginTop: '15px' }} // Ensure the image fits
+                            style={{ width: '100%', marginTop: '15px' }} 
                         />
                         <br /><br />
                     </div>

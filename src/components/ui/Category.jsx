@@ -1,34 +1,47 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap/dist/js/bootstrap.bundle.min';
 import { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
-import { getMethod, getMethodPostByToken, getMethodByToken} from '@services/request';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { getMethod,getMethodByToken, getMethodPostByToken } from '@services/request';
 import { formatMoney } from '@services/Formatmoney';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 
-function DefaultLayout() {
+
+function Category() {
     const apiUrl = import.meta.env.VITE_API_URL;
-    const navigate = useNavigate();
     const [products, setProducts] = useState([]);
+    const location = useLocation();
+    const navigate = useNavigate();
     const [visibleCount, setVisibleCount] = useState(4);
 
     useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const categoryId = params.get('categoryId');
+        console.log('categoryId from URL:', categoryId);
+
         const fetchProducts = async () => {
             try {
-                const result = await getMethod(`${apiUrl}/api/product/public/find-all`);
-                setProducts(result.content); 
+                const url = `${apiUrl}/api/product/public/findAll-list`;
+                const response = await getMethod(url);
+                console.log('API response:', response); 
+        
+                if (response && Array.isArray(response)) {
+                    const filteredProducts = response.filter(
+                        (product) => product.category && product.category.id === parseInt(categoryId, 10)
+                    );
+                    setProducts(filteredProducts);
+                } else {
+                    console.error('response.content is not an array or is undefined:', response);
+                    setProducts([]);
+                }
             } catch (error) {
                 console.error('Error fetching products:', error);
+                toast.error('Có lỗi xảy ra khi tải danh sách sản phẩm.');
             }
         };
-        fetchProducts();
-    }, []);
 
-    const handleShowMore = () => {
-        setVisibleCount(prevCount => Math.min(prevCount + 4, products.length));
-    };
-
+        if (categoryId) {
+            fetchProducts();
+        }
+    }, [location.search]);
 
     async function initCart() {
         try {
@@ -78,48 +91,46 @@ function DefaultLayout() {
             toast.error('Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng.');
         }
     };
-    
+
+    const handleNavigate = (productId, productName) => {
+        navigate(`/product?productId=${productId}&productName=${productName}`);
+    };
+
+    const loadMore = () => {
+        setVisibleCount((prevCount) => prevCount + 4);
+    };
 
     return (
-        <>
-            <div id="carouselExampleIndicators" className="carousel slide" data-bs-ride="carousel">
-                <div className="carousel-inner h-100">
-                    <div className="carousel-item h-100 active">
-                        <img className="d-block h-100 w-100 object-fit-cover" src="./assets/banner1.jpg" alt="First slide" />
-                    </div>
-                    <div className="carousel-item h-100">
-                        <img className="d-block h-100 w-100 object-fit-cover" src="./assets/banner2.jpg" alt="Second slide" />
-                    </div>
-                    <div className="carousel-item h-100">
-                        <img className="d-block h-100 w-100 object-fit-cover" src="./assets/banner3.jpg" alt="Third slide" />
-                    </div>
-                </div>
-                <a className="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-bs-slide="prev">
-                    <span className="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span className="visually-hidden">Previous</span>
-                </a>
-                <a className="carousel-control-next" href="#carouselExampleIndicators" role="button" data-bs-slide="next">
-                    <span className="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span className="visually-hidden">Next</span>
-                </a>
-            </div>
-
-            <div className="container my-5">
-                <h2 className="text-center mb-4">Sản phẩm nổi bật</h2>
-                <div className="row">
-                    {products.slice(0, visibleCount).map(product => (
+        <div className="container my-5">
+            <nav aria-label="breadcrumb">
+                <ol className="breadcrumb" style={{ marginTop: '80px' }}>
+                    <li
+                        className="breadcrumb-item"
+                        onClick={() => navigate('/')}
+                        style={{ cursor: 'pointer' }}
+                    >
+                        Trang chủ
+                    </li>
+                    <li className="breadcrumb-item active" aria-current="page">
+                        {new URLSearchParams(location.search).get('categoryName') || 'Danh mục'}
+                    </li>
+                </ol>
+            </nav>
+            <div className="row">
+                {Array.isArray(products) && products.length > 0 ? (
+                    products.slice(0, visibleCount).map((product) => (
                         <div className="col-md-3 mb-4" key={product.id}>
                             <div
                                 className="card h-100 d-flex flex-column align-items-center text-center"
                                 style={{ cursor: 'pointer' }}
-                                onClick={() => navigate(`/product?productId=${product.id}&productName=${product.name}`)}
+                                onClick={() => handleNavigate(product.id, product.name)}
                             >
                                 <div
                                     className="d-flex mt-3 justify-content-center align-items-center w-100"
                                     style={{ height: '150px' }}
                                 >
                                     <img
-                                        src={product.imageBanner}
+                                        src={product.imageBanner || '../assets/default-image.png'}
                                         className="card-img-top h-100 w-100"
                                         alt={product.name}
                                         style={{ objectFit: 'contain' }}
@@ -129,8 +140,8 @@ function DefaultLayout() {
                                 <div className="card-body d-flex flex-column align-items-center">
                                     <h5 className="card-title">{product.name}</h5>
                                     <div className="card-text">
-                                     <span style={{ fontWeight: 'normal' }}>
-                                     {formatMoney(product.price)}
+                                        <span style={{ fontWeight: 'normal' }}>
+                                            {formatMoney(product.price)}
                                         </span>
                                     </div>
                                     <button
@@ -145,17 +156,23 @@ function DefaultLayout() {
                                 </div>
                             </div>
                         </div>
-                    ))}
-                </div>
-
-                {visibleCount < products.length && (
-                    <div className="text-center mt-4">
-                        <button className="btn btn-light" onClick={handleShowMore}>Xem thêm</button>
+                    ))
+                ) : (
+                    <div className="col-12">
+                        <p>Không có sản phẩm nào</p>
                     </div>
                 )}
             </div>
-        </>
+
+            {visibleCount < products.length && (
+                <div className="text-center mt-4">
+                    <button className="btn btn-light" onClick={loadMore}>
+                        Xem thêm
+                    </button>
+                </div>
+            )}
+        </div>
     );
 }
 
-export default DefaultLayout;
+export default Category;

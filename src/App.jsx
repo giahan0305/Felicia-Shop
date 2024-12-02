@@ -6,7 +6,10 @@ import ScrollToTop from '@components/ScrollToTop';
 import Login from '@components/ui/Login';
 import Regist from '@components/ui/Regist';
 import ConfirmRegist from '@components/ui/ConfirmRegist';
+import Category from '@components/ui/Category'
 import ProductDetail from '@components/ui/Product';
+import Cart from '@components/ui/Cart';
+import Order from '@components/ui/Odrer';
 import AdminLayout from '@components/admin/AdminLayout';
 import AdminHome from '@components/admin/AdminHomePage';
 import { AuthProvider, AuthContext } from '@contexts/AuthContext';
@@ -29,8 +32,10 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Regist />} />
         <Route path="/confirmregister" element={<ConfirmRegist />} />
-        <Route path="/Product" element={<ProductDetail />} />
-
+        <Route path="/category" element={<Category />} />
+        <Route path="/product" element={<ProductDetail />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/order" element={<Order />} />
         {/* Admin Routes */}
         {userRole === 'ROLE_ADMIN' && (
           <>
