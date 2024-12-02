@@ -1,8 +1,38 @@
 # React + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project is bootstrapped with [Vite](https://vitejs.dev/) to provide a fast and modern development experience.
 
-Currently, two official plugins are available:
+## Getting Started
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+To start the development server, use the following commands:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+
+File Structure
+You can start editing the project by modifying files in the src/ directory. Changes are automatically reflected in the browser using Vite's Hot Module Replacement (HMR).
+
+Features
+Fast Refresh: Instant feedback when making changes.
+ESLint Rules: Preconfigured ESLint rules to maintain code quality.
+Official Plugins:
+@vitejs/plugin-react (uses Babel for Fast Refresh).
+@vitejs/plugin-react-swc (uses SWC for Fast Refresh).
+Learn More
+To learn more about React and Vite, check out the following resources:
+
+React Documentation - Learn React concepts and API.
+Vite Documentation - Understand Vite features and configurations.
+Deploy
+The easiest way to deploy your React + Vite app is to use platforms like Vercel or Netlify.
+
+Follow the Vite deployment guide for detailed instructions.
+
+Feedback and Contributions
+Feedback and contributions are always welcome! Check out our GitHub repository for more information.
