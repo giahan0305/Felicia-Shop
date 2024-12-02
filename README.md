@@ -28,8 +28,8 @@ Fast Refresh: Instant feedback when making changes.
 <br>• @vitejs/plugin-react-swc (uses SWC for Fast Refresh).
 ## Learn More
 To learn more about React and Vite, check out the following resources:
-<br> •React Documentation - Learn React concepts and API.
-<br> •Vite Documentation - Understand Vite features and configurations.
+<br> • React Documentation - Learn React concepts and API.
+<br> • Vite Documentation - Understand Vite features and configurations.
 ## Deploy
 The easiest way to deploy your React + Vite app is to use platforms like Vercel or Netlify.
 <br>Follow the Vite deployment guide for detailed instructions.
