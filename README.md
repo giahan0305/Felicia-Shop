@@ -14,7 +14,9 @@ yarn dev
 pnpm dev
 # or
 bun dev
+exit
 
+Open http://localhost:3000 in your browser to see your application.
 File Structure
 You can start editing the project by modifying files in the src/ directory. Changes are automatically reflected in the browser using Vite's Hot Module Replacement (HMR).
 
