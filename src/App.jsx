@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 import Header from '@components/header/header';
 import Footer from '@components/footer/footer';
 import DefaultLayout from '@components/ui/DefaultLayout';
